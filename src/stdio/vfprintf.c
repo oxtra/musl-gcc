@@ -102,7 +102,7 @@ static const unsigned char states[]['z'-'A'+1] = {
 union arg
 {
 	uintmax_t i;
-	long double f;
+	//long double f;
 	void *p;
 };
 
@@ -125,8 +125,8 @@ static void pop_arg(union arg *arg, int type, va_list *ap)
 	break; case UMAX:	arg->i = va_arg(*ap, uintmax_t);
 	break; case PDIFF:	arg->i = va_arg(*ap, ptrdiff_t);
 	break; case UIPTR:	arg->i = (uintptr_t)va_arg(*ap, void *);
-	break; case DBL:	arg->f = va_arg(*ap, double);
-	break; case LDBL:	arg->f = va_arg(*ap, long double);
+	break; //case DBL:	arg->f = va_arg(*ap, double);
+	//break; case LDBL:	arg->f = va_arg(*ap, long double);
 	}
 }
 
@@ -614,12 +614,12 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 			pad(f, ' ', w, p, fl^LEFT_ADJ);
 			l = w>p ? w : p;
 			continue;
-		case 'e': case 'f': case 'g': case 'a':
+		/*case 'e': case 'f': case 'g': case 'a':
 		case 'E': case 'F': case 'G': case 'A':
 			if (xp && p<0) goto overflow;
 			l = fmt_fp(f, arg.f, w, p, fl, t);
 			if (l<0) goto overflow;
-			continue;
+			continue;*/
 		}
 
 		if (p < z-a) p = z-a;
@@ -656,7 +656,7 @@ overflow:
 
 int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 {
-	va_list ap2;
+	//va_list ap2;
 	int nl_type[NL_ARGMAX+1] = {0};
 	union arg nl_arg[NL_ARGMAX+1];
 	unsigned char internal_buf[80], *saved_buf = 0;
@@ -664,9 +664,9 @@ int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 	int ret;
 
 	/* the copy allows passing va_list* even if va_list is an array */
-	va_copy(ap2, ap);
-	if (printf_core(0, fmt, &ap2, nl_arg, nl_type) < 0) {
-		va_end(ap2);
+	//va_copy(ap2, ap);
+	if (printf_core(0, fmt, ap, nl_arg, nl_type) < 0) {
+		//va_end(ap);
 		return -1;
 	}
 
@@ -680,7 +680,7 @@ int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 		f->wpos = f->wbase = f->wend = 0;
 	}
 	if (!f->wend && __towrite(f)) ret = -1;
-	else ret = printf_core(f, fmt, &ap2, nl_arg, nl_type);
+	else ret = printf_core(f, fmt, ap, nl_arg, nl_type);
 	if (saved_buf) {
 		f->write(f, 0, 0);
 		if (!f->wpos) ret = -1;
@@ -691,6 +691,6 @@ int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 	if (f->flags & F_ERR) ret = -1;
 	f->flags |= olderr;
 	FUNLOCK(f);
-	va_end(ap2);
+	//va_end(ap);
 	return ret;
 }
