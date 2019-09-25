@@ -287,8 +287,8 @@ void *malloc(size_t n)
 	int i, j;
 
 	if (adjust_size(&n) < 0) return 0;
-
-	if (n > MMAP_THRESHOLD) {
+	// if (n > MMAP_THRESHOLD) 
+	if (n > 0) {
 		size_t len = n + OVERHEAD + PAGE_SIZE - 1 & -PAGE_SIZE;
 		char *base = __mmap(0, len, PROT_READ|PROT_WRITE,
 			MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
@@ -325,7 +325,7 @@ void *malloc(size_t n)
 	}
 
 	/* Now patch up in case we over-allocated */
-	trim(c, n);
+	//trim(c, n);
 
 	return CHUNK_TO_MEM(c);
 }
@@ -524,8 +524,8 @@ void free(void *p)
 
 	if (IS_MMAPPED(self))
 		unmap_chunk(self);
-	else
-		__bin_chunk(self);
+	/*else
+		__bin_chunk(self);*/
 }
 
 void __malloc_donate(char *start, char *end)
