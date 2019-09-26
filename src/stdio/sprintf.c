@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+__attribute__ ((__target__ ("no-sse")))
 int sprintf(char *restrict s, const char *restrict fmt, ...)
 {
 	int ret;
