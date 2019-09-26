@@ -24,12 +24,14 @@ int __malloc_replaced;
 
 /* Synchronization tools */
 
+__attribute__ ((__target__ ("no-sse")))
 static inline void lock(volatile int *lk)
 {
 	if (libc.threads_minus_1)
 		while(a_swap(lk, 1)) __wait(lk, lk+1, 1, 1);
 }
 
+__attribute__ ((__target__ ("no-sse")))
 static inline void unlock(volatile int *lk)
 {
 	if (lk[0]) {
@@ -38,6 +40,7 @@ static inline void unlock(volatile int *lk)
 	}
 }
 
+__attribute__ ((__target__ ("no-sse")))
 static inline void lock_bin(int i)
 {
 	lock(mal.bins[i].lock);
@@ -45,6 +48,7 @@ static inline void lock_bin(int i)
 		mal.bins[i].head = mal.bins[i].tail = BIN_TO_CHUNK(i);
 }
 
+__attribute__ ((__target__ ("no-sse")))
 static inline void unlock_bin(int i)
 {
 	unlock(mal.bins[i].lock);
@@ -287,8 +291,7 @@ void *malloc(size_t n)
 	int i, j;
 
 	if (adjust_size(&n) < 0) return 0;
-	// if (n > MMAP_THRESHOLD) 
-	if (n > 0) {
+	if (n > MMAP_THRESHOLD) {
 		size_t len = n + OVERHEAD + PAGE_SIZE - 1 & -PAGE_SIZE;
 		char *base = __mmap(0, len, PROT_READ|PROT_WRITE,
 			MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
@@ -325,7 +328,7 @@ void *malloc(size_t n)
 	}
 
 	/* Now patch up in case we over-allocated */
-	//trim(c, n);
+	trim(c, n);
 
 	return CHUNK_TO_MEM(c);
 }
@@ -437,6 +440,7 @@ copy_free_ret:
 	return new;
 }
 
+__attribute__ ((__target__ ("no-sse")))
 void __bin_chunk(struct chunk *self)
 {
 	struct chunk *next = NEXT_CHUNK(self);
@@ -482,6 +486,7 @@ void __bin_chunk(struct chunk *self)
 	if (!(mal.binmap & 1ULL<<i))
 		a_or_64(&mal.binmap, 1ULL<<i);
 
+
 	self->csize = final_size;
 	next->psize = final_size;
 	unlock(mal.free_lock);
@@ -524,8 +529,8 @@ void free(void *p)
 
 	if (IS_MMAPPED(self))
 		unmap_chunk(self);
-	/*else
-		__bin_chunk(self);*/
+	else
+		__bin_chunk(self);
 }
 
 void __malloc_donate(char *start, char *end)
