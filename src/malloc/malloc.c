@@ -291,6 +291,7 @@ void *malloc(size_t n)
 	int i, j;
 
 	if (adjust_size(&n) < 0) return 0;
+
 	if (n > MMAP_THRESHOLD) {
 		size_t len = n + OVERHEAD + PAGE_SIZE - 1 & -PAGE_SIZE;
 		char *base = __mmap(0, len, PROT_READ|PROT_WRITE,
@@ -485,7 +486,6 @@ void __bin_chunk(struct chunk *self)
 
 	if (!(mal.binmap & 1ULL<<i))
 		a_or_64(&mal.binmap, 1ULL<<i);
-
 
 	self->csize = final_size;
 	next->psize = final_size;
